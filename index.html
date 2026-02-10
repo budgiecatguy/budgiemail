@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Budgie Post</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M50 10 Q30 30 25 50 Q23 65 30 80 L35 75 Q30 60 32 50 Q35 35 50 20 Q65 35 68 50 Q70 60 65 75 L70 80 Q77 65 75 50 Q70 30 50 10 Z' fill='%2395d5b2' stroke='%234a7c59' stroke-width='2'/%3E%3Cpath d='M50 20 Q40 35 38 50 Q37 58 40 68 Q43 58 45 50 Q48 38 50 25 Q52 38 55 50 Q57 58 60 68 Q63 58 62 50 Q60 35 50 20 Z' fill='%23ffd166' opacity='0.6'/%3E%3C/svg%3E">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #a8e6cf 0%, #dcedc1 50%, #ffd3b6 100%);
+      min-height: 100vh;
+      padding: 20px;
+      position: relative;
+    }
+
+    .container {
+      position: relative;
+      z-index: 1;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      color: white;
+      text-align: center;
+      margin-bottom: 30px;
+      font-size: 2.5rem;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+    }
+
+    .add-bubble-section {
+      background: white;
+      padding: 20px;
+      border-radius: 15px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+      margin-bottom: 30px;
+    }
+
+    .input-group {
+      display: flex;
+      gap: 10px;
+    }
+
+    #bubbleInput {
+      flex: 1;
+      padding: 12px 16px;
+      border: 2px solid #e0e0e0;
+      border-radius: 10px;
+      font-size: 16px;
+      transition: border-color 0.3s;
+    }
+
+    #bubbleInput:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    #addButton {
+      padding: 12px 30px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    #addButton:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+
+    #addButton:active {
+      transform: translateY(0);
+    }
+
+    .bubbles-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 20px;
+    }
+
+    .bubble {
+      background: white;
+      padding: 20px;
+      border-radius: 15px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+      position: relative;
+      transition: transform 0.2s, box-shadow 0.2s;
+      animation: fadeIn 0.3s ease-in;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: scale(0.9);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    .bubble:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+    }
+
+    .bubble-text {
+      font-size: 16px;
+      line-height: 1.5;
+      color: #333;
+      word-wrap: break-word;
+      margin-bottom: 10px;
+    }
+
+    .bubble-timestamp {
+      font-size: 12px;
+      color: #888;
+      margin-bottom: 10px;
+      font-style: italic;
+    }
+
+    .bubble-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .edit-btn, .delete-btn, .save-btn, .cancel-btn {
+      padding: 6px 14px;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-weight: 500;
+    }
+
+    .pin-btn {
+      padding: 6px 14px;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-weight: 500;
+      background: #FF9800;
+      color: white;
+    }
+
+    .pin-btn:hover {
+      background: #F57C00;
+    }
+
+    .pin-btn.pinned {
+      background: #FFC107;
+    }
+
+    .bubble.pinned {
+      border: 2px solid #FFC107;
+      background: #FFFEF5;
+    }
+
+    .pinned-indicator {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      font-size: 18px;
+    }
+
+    .edit-btn {
+      background: #4CAF50;
+      color: white;
+    }
+
+    .edit-btn:hover {
+      background: #45a049;
+    }
+
+    .delete-btn {
+      background: #f44336;
+      color: white;
+    }
+
+    .delete-btn:hover {
+      background: #da190b;
+    }
+
+    .save-btn {
+      background: #2196F3;
+      color: white;
+    }
+
+    .save-btn:hover {
+      background: #0b7dda;
+    }
+
+    .cancel-btn {
+      background: #9e9e9e;
+      color: white;
+    }
+
+    .cancel-btn:hover {
+      background: #757575;
+    }
+
+    .bubble-edit-input {
+      width: 100%;
+      padding: 10px;
+      border: 2px solid #667eea;
+      border-radius: 8px;
+      font-size: 16px;
+      font-family: inherit;
+      resize: vertical;
+      min-height: 60px;
+    }
+
+    .bubble-edit-input:focus {
+      outline: none;
+      border-color: #764ba2;
+    }
+
+    .loading {
+      text-align: center;
+      color: white;
+      font-size: 18px;
+      padding: 40px;
+    }
+
+    .empty-state {
+      text-align: center;
+      color: white;
+      font-size: 18px;
+      padding: 60px 20px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 15px;
+      backdrop-filter: blur(10px);
+    }
+
+    .empty-state p {
+      margin-bottom: 10px;
+    }
+
+    .undo-notification {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #323232;
+      color: white;
+      padding: 16px 24px;
+      border-radius: 8px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      animation: slideUp 0.3s ease-out;
+      z-index: 1000;
+    }
+
+    @keyframes slideUp {
+      from {
+        transform: translateX(-50%) translateY(100px);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(-50%) translateY(0);
+        opacity: 1;
+      }
+    }
+
+    .undo-notification .message {
+      font-size: 15px;
+    }
+
+    .undo-notification .timer {
+      font-weight: bold;
+      margin-left: 4px;
+    }
+
+    .undo-btn {
+      background: white;
+      color: #323232;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .undo-btn:hover {
+      background: #f0f0f0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🦜 Budgie Post</h1>
+    
+    <div class="add-bubble-section">
+      <div class="input-group">
+        <input 
+          type="text" 
+          id="bubbleInput" 
+          placeholder="Type your message here..."
+          maxlength="500"
+        >
+        <button id="addButton">Add Bubble</button>
+      </div>
+    </div>
+
+    <div id="bubblesContainer" class="bubbles-container">
+      <div class="loading">Loading bubbles...</div>
+    </div>
+  </div>
+
+  <script>
+    let bubbles = {};
+    let isLoading = true;
+    let previousBubbleCount = 0;
+    let notificationsEnabled = false;
+
+    // Request notification permission
+    async function requestNotificationPermission() {
+      if ('Notification' in window && Notification.permission === 'default') {
+        const permission = await Notification.requestPermission();
+        notificationsEnabled = permission === 'granted';
+      } else if (Notification.permission === 'granted') {
+        notificationsEnabled = true;
+      }
+    }
+
+    // Show notification for new bubble
+    function showNewBubbleNotification() {
+      if (notificationsEnabled && Notification.permission === 'granted') {
+        new Notification('New Tweet!', {
+          body: 'A new post on Budgie Post',
+          icon: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACgAAAAoCAYAAACM/rhtAAAACXBIWXMAAAsTAAALEwEAmpwYAAADGklEQVRYhe2YS2wTQRiAv9nZXa+dOHGcOKlT0xdNaUsRQkIcOHHhwIULUiUQQhzgAOKABBIXJMSJKxeQuCBxQOLAgQMSUkGiPKQqFKSqgo5SSEqbpM7Dju3E3hl2Y0yVxo3ttKX8Uryand3Z+Wfmn9n/B/iP/19wDUCqqtp0Xa+qqmpbAVTTNK3RaDQcDocDwzC8lmVZpmkahmEYhmGYlmVZlud5nud5vue6ruu6ruu6ruu6ruu6/wJUFEVRFEVRFEVRFEVRFEVRFEVRFEVRFEVRFEVRFEVRFEVRFEVRFEVRFOVfA9br9Xq1Wq1ardVqtVqtVqvVarVarVartVqtVqvV6oZAVVXVer1eq9VqtVqt1mq1WqvV6oZBRVGUWq1Wq9VqtVarNwSqqqqapmmapmmqqipbBvR6vd5ardZqtVqr1WqtVqvVaq1Wq9VqtVqtVqu1Wq3+A1BVVbVer9dqtVqtVqu1Wq3WarVaq9VqrVar1Wq1Wq3WarVaq9VqrVar1Q2BiqIoiqIoiqIoiqIoiqIoiqIo/wKoKIqiKIqiKIqiKIqiKIqiKIqiKIqiKMq/AKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqr+C1BRFEVRFEVRFEVRFEVRFEVRFEVRFEVRFEVRFEVRFEVRFEVRFEVRFEVRlL8F1uv1eq1Wq9VqtVqr1WqtVqu1Wq3WarVaq9VqrVar1Wq1Wq3WarVaq9VqrVartVqtbghUVVWt1+u1Wq3WarVaq9VqrVartVqt1mq1WqvVaq1Wq7VardZqtVqr1WqtVqu1Wq3WarW6IVBRFKVWq9VqtVqtVqu1Wq3WarVaq9VqrVartVqt1mq1WqvVaq1Wq7VardZqtVqr1WqtVqsbAhVFUWq1Wq1Wq9VqtVqr1WqtVqu1Wq3WarVaq9VqrVartVqt1mq1WqvVaq1Wq7VardZqtbohUFEUpVar1Wq1WqvVaq1Wq7VardZqtVqr1WqtVqu1Wq3WarVaq9VqrVartVqt1mq1WqvVaq1Wq7VarW4IVBRFUVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVX9F6CiKIqiKIqiKIqiKIqiKIqiKIqiKIqiKIqiKIqiKIqiKIqiKIqiKIqiKIqiKIqiKIryL0BFURRFURRFURRFURRFURRFURRFURRFURRFURRFURRFURRFURRFURRFURRFURRFUf4VUFEURVEURURVFUVRFEVRFEVRFEVRFEVRFEVRFEVRFEVRFEVRFEVRFEVRFEVRFEVRFEX5F6CiKIqiKIqiKIqiKIqiKIqiKIqiKIqiKIqiKIqiKIqiKIqiKIqiKIqiKIqiKIqiKIqiKP8CqKqq/gJjm7QJVqxVFQAAAABJRU5ErkJggg==',
+          badge: '🦜'
+        });
+      }
+    }
+
+    // Load bubbles from shared storage
+    async function loadBubbles() {
+      try {
+        const result = await window.storage.list('bubble:', true);
+        if (result && result.keys) {
+          const newBubbles = {};
+          for (const key of result.keys) {
+            try {
+              const data = await window.storage.get(key, true);
+              if (data && data.value) {
+                const bubbleData = JSON.parse(data.value);
+                const id = key.replace('bubble:', '');
+                newBubbles[id] = bubbleData;
+              }
+            } catch (err) {
+              console.error('Error loading bubble:', key, err);
+            }
+          }
+          
+          // Check if there are new bubbles (only after initial load)
+          if (!isLoading && Object.keys(newBubbles).length > Object.keys(bubbles).length) {
+            showNewBubbleNotification();
+          }
+          
+          bubbles = newBubbles;
+        }
+      } catch (error) {
+        console.log('No existing bubbles found');
+        bubbles = {};
+      }
+      isLoading = false;
+      renderBubbles();
+    }
+
+    // Save a bubble to shared storage
+    async function saveBubble(id, text, pinned = false) {
+      const bubbleData = { text, id, timestamp: Date.now(), pinned: pinned || false };
+      try {
+        await window.storage.set(`bubble:${id}`, JSON.stringify(bubbleData), true);
+        bubbles[id] = bubbleData;
+        renderBubbles();
+      } catch (error) {
+        console.error('Error saving bubble:', error);
+        alert('Failed to save bubble. Please try again.');
+      }
+    }
+
+    // Delete a bubble from shared storage
+    async function deleteBubble(id) {
+      try {
+        await window.storage.delete(`bubble:${id}`, true);
+        delete bubbles[id];
+        renderBubbles();
+      } catch (error) {
+        console.error('Error deleting bubble:', error);
+        alert('Failed to delete bubble. Please try again.');
+      }
+    }
+
+    // Render all bubbles
+    function renderBubbles() {
+      const container = document.getElementById('bubblesContainer');
+      
+      if (isLoading) {
+        container.innerHTML = '<div class="loading">Loading bubbles...</div>';
+        return;
+      }
+
+      const bubbleArray = Object.values(bubbles).sort((a, b) => {
+        // Pinned bubbles always come first
+        if (a.pinned && !b.pinned) return -1;
+        if (!a.pinned && b.pinned) return 1;
+        // Within same pinned status, sort by timestamp
+        return b.timestamp - a.timestamp;
+      });
+
+      if (bubbleArray.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <p>No bubbles yet!</p>
+            <p>Be the first to add one above 👆</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = bubbleArray.map(bubble => `
+        <div class="bubble ${bubble.pinned ? 'pinned' : ''}" data-id="${bubble.id}">
+          ${bubble.pinned ? '<div class="pinned-indicator">📌</div>' : ''}
+          <div class="bubble-text" id="text-${bubble.id}">${escapeHtml(bubble.text)}</div>
+          <div class="bubble-timestamp">${formatTimestamp(bubble.timestamp)}</div>
+          <div class="bubble-actions">
+            <button class="pin-btn ${bubble.pinned ? 'pinned' : ''}" onclick="togglePin('${bubble.id}')">
+              ${bubble.pinned ? 'Unpin' : 'Pin'}
+            </button>
+            <button class="edit-btn" onclick="startEdit('${bubble.id}')">Edit</button>
+            <button class="delete-btn" onclick="confirmDelete('${bubble.id}')">Delete</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // Start editing a bubble
+    function startEdit(id) {
+      const bubble = bubbles[id];
+      const bubbleElement = document.querySelector(`[data-id="${id}"]`);
+      
+      bubbleElement.innerHTML = `
+        <textarea class="bubble-edit-input" id="edit-input-${id}">${escapeHtml(bubble.text)}</textarea>
+        <div class="bubble-actions">
+          <button class="save-btn" onclick="saveEdit('${id}')">Save</button>
+          <button class="cancel-btn" onclick="cancelEdit('${id}')">Cancel</button>
+        </div>
+      `;
+      
+      document.getElementById(`edit-input-${id}`).focus();
+    }
+
+    // Save edited bubble
+    async function saveEdit(id) {
+      const input = document.getElementById(`edit-input-${id}`);
+      const newText = input.value.trim();
+      
+      if (newText) {
+        const pinned = bubbles[id].pinned || false;
+        await saveBubble(id, newText, pinned);
+      } else {
+        alert('Bubble text cannot be empty!');
+      }
+    }
+
+    // Toggle pin status
+    async function togglePin(id) {
+      const bubble = bubbles[id];
+      const newPinnedStatus = !bubble.pinned;
+      await saveBubble(id, bubble.text, newPinnedStatus);
+    }
+
+    // Cancel editing
+    function cancelEdit(id) {
+      renderBubbles();
+    }
+
+    // Confirm deletion
+    let deleteTimeout = null;
+    let currentDeleteId = null;
+    let deletedBubbleData = null;
+
+    function confirmDelete(id) {
+      // Store the bubble data before deleting
+      deletedBubbleData = { ...bubbles[id] };
+      currentDeleteId = id;
+      
+      // Delete immediately from UI
+      delete bubbles[id];
+      renderBubbles();
+      
+      // Show undo notification
+      showUndoNotification();
+      
+      // Set timeout to actually delete from storage
+      deleteTimeout = setTimeout(async () => {
+        try {
+          await window.storage.delete(`bubble:${currentDeleteId}`, true);
+          currentDeleteId = null;
+          deletedBubbleData = null;
+        } catch (error) {
+          console.error('Error deleting bubble:', error);
+        }
+      }, 4000);
+    }
+
+    function showUndoNotification() {
+      // Remove existing notification if any
+      const existing = document.getElementById('undoNotification');
+      if (existing) {
+        existing.remove();
+      }
+      
+      const notification = document.createElement('div');
+      notification.id = 'undoNotification';
+      notification.className = 'undo-notification';
+      notification.innerHTML = `
+        <div class="message">
+          Bubble deleted
+          <span class="timer" id="undoTimer">4</span>
+        </div>
+        <button class="undo-btn" onclick="undoDelete()">UNDO</button>
+      `;
+      
+      document.body.appendChild(notification);
+      
+      // Update timer
+      let timeLeft = 4;
+      const timerInterval = setInterval(() => {
+        timeLeft--;
+        const timerEl = document.getElementById('undoTimer');
+        if (timerEl) {
+          timerEl.textContent = timeLeft;
+        }
+        if (timeLeft <= 0) {
+          clearInterval(timerInterval);
+          notification.remove();
+        }
+      }, 1000);
+      
+      // Auto-remove after 4 seconds
+      setTimeout(() => {
+        notification.remove();
+        clearInterval(timerInterval);
+      }, 4000);
+    }
+
+    function undoDelete() {
+      if (currentDeleteId && deletedBubbleData) {
+        // Cancel the deletion timeout
+        clearTimeout(deleteTimeout);
+        
+        // Restore the bubble
+        bubbles[currentDeleteId] = deletedBubbleData;
+        renderBubbles();
+        
+        // Remove notification
+        const notification = document.getElementById('undoNotification');
+        if (notification) {
+          notification.remove();
+        }
+        
+        // Clear state
+        currentDeleteId = null;
+        deletedBubbleData = null;
+      }
+    }
+
+    // Add new bubble
+    async function addBubble() {
+      const input = document.getElementById('bubbleInput');
+      const text = input.value.trim();
+      
+      if (!text) {
+        alert('Please enter some text!');
+        return;
+      }
+
+      const id = Date.now().toString();
+      await saveBubble(id, text);
+      input.value = '';
+    }
+
+    // Escape HTML to prevent XSS
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    // Format timestamp to readable date and time
+    function formatTimestamp(timestamp) {
+      const date = new Date(timestamp);
+      const dateStr = date.toLocaleDateString('en-US', { 
+        month: 'short', 
+        day: 'numeric', 
+        year: 'numeric' 
+      });
+      const timeStr = date.toLocaleTimeString('en-US', { 
+        hour: 'numeric', 
+        minute: '2-digit',
+        hour12: true 
+      });
+      return `${dateStr} at ${timeStr}`;
+    }
+
+    // Event listeners
+    document.getElementById('addButton').addEventListener('click', addBubble);
+    document.getElementById('bubbleInput').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        addBubble();
+      }
+    });
+
+    // Refresh bubbles periodically to show updates from other users
+    setInterval(loadBubbles, 3000);
+
+    // Initial load and request notification permission
+    loadBubbles();
+    requestNotificationPermission();
+  </script>
+</body>
+</html>
